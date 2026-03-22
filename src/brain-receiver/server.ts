@@ -1,42 +1,36 @@
 import express from 'express';
-import { syncGitHub } from '../executors/github-sync';
-import { runDocAutomation } from '../executors/doc-automation';
-import { scrapeResource } from '../executors/resource-scraper';
+import { orchestrator } from '../orchestrator';
 
 const app = express();
 app.use(express.json());
 
-export function startBrainReceiver(port: number = 3456) {
+export function startRestServer(port: number = 3456) {
+    // Basic Task Execution Endpoint
     app.post('/api/task', async (req, res) => {
         const { id, type, payload } = req.body;
-        console.log(`\n[BrainReceiver] ⚡ Received Task [${id}] of type: ${type}`);
-        console.log(`[BrainReceiver] Payload:`, payload);
-
+        
+        console.error(`\n[REST] 📥 Received Task: [${id || 'anon'}] (${type})`);
+        
         try {
-            if (type === 'github-sync') {
-                const result = await syncGitHub(payload.repoPath, payload.commitMessage);
-                if (result.success) {
-                    res.status(200).json({ status: 'success', taskId: id, message: 'Sync complete' });
-                } else {
-                    res.status(500).json({ status: 'error', taskId: id, error: result.error });
-                }
-            } else if (type === 'doc-automation') {
-                await runDocAutomation(payload.targetFile, payload.content);
-                res.status(200).json({ status: 'success', taskId: id });
-            } else if (type === 'resource-scraper') {
-                await scrapeResource(payload.url);
-                res.status(200).json({ status: 'success', taskId: id });
-            } else {
-                res.status(400).json({ status: 'error', error: `Unknown task type: ${type}` });
-            }
+            const result = await orchestrator.execute({
+                id: id || `rest-${Date.now()}`,
+                type,
+                payload
+            });
+            res.status(200).json(result);
         } catch (err: any) {
-            console.error(`❌ [BrainReceiver] Task execution failed:`, err);
-            res.status(500).json({ status: 'error', taskId: id, error: err.message });
+            console.error(`[REST] ❌ Execution failed: ${err.message}`);
+            res.status(500).json({ success: false, error: err.message });
         }
     });
 
+    // Simple Heartbeat/Ping
+    app.get('/api/status', async (req, res) => {
+        res.json({ status: 'online', service: 'ClawLink AICF Bridge' });
+    });
+
     app.listen(port, () => {
-        console.log(`\n✅ [BrainReceiver] Listening for AI planning tasks on http://localhost:${port}`);
-        console.log(`   Waiting for POST requests to /api/task...`);
+        console.error(`\n🚀 [ClawLink REST] Listening on http://localhost:${port}`);
+        console.error(`   Perfect for local CLI tools (fabric, custom scripts, etc.)`);
     });
 }

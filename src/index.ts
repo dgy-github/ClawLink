@@ -1,13 +1,21 @@
 import { runMcpServer } from './mcp-server/index';
+import { startRestServer } from './brain-receiver/server';
 
-// IMPORTANT: When standard I/O (stdio) is used for MCP protocol communication,
-// any console.log output will corrupt the JSON-RPC messages sent to stdout.
-// By redirecting all console.log to console.error (stderr), we preserve logging 
-// visibility in Claude's debug windows without breaking the transport.
+/**
+ * ClawLink Dual-Mode Bootloader
+ * 1. MCP Mode (Stdio): For MCP-compatible clients (Claude Desktop, etc.)
+ * 2. REST Mode (HTTP): For local CLI tools, Python scripts, and Fabric patterns.
+ */
+
+// Safe logging for Stdio
 console.log = console.error;
 
-console.error('🚀 [ClawLink] Starting Plugin as MCP Stdio Server...');
+const mode = process.argv.includes('--rest') ? 'REST' : 'MCP';
 
-runMcpServer().catch((error) => {
-    console.error("Fatal error starting MCP Server:", error);
-});
+if (mode === 'REST') {
+    startRestServer(3456);
+} else {
+    runMcpServer().catch((error) => {
+        console.error("Fatal error starting MCP Server:", error);
+    });
+}
