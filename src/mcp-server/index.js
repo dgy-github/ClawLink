@@ -1,21 +1,19 @@
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
-import { orchestrator } from "../orchestrator";
-
-const server = new Server(
-    {
-        name: "clawlink-aicf-bridge",
-        version: "1.0.0",
-    },
-    {
-        capabilities: {
-            tools: {}
-        }
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.runMcpServer = runMcpServer;
+const index_js_1 = require("@modelcontextprotocol/sdk/server/index.js");
+const stdio_js_1 = require("@modelcontextprotocol/sdk/server/stdio.js");
+const types_js_1 = require("@modelcontextprotocol/sdk/types.js");
+const orchestrator_1 = require("../orchestrator");
+const server = new index_js_1.Server({
+    name: "clawlink-aicf-bridge",
+    version: "1.0.0",
+}, {
+    capabilities: {
+        tools: {}
     }
-);
-
-server.setRequestHandler(ListToolsRequestSchema, async () => {
+});
+server.setRequestHandler(types_js_1.ListToolsRequestSchema, async () => {
     return {
         tools: [
             {
@@ -73,45 +71,42 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         ]
     };
 });
-
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
+server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
-    
     try {
         // Map MCP Tool Names to Orchestrator Task Types
-        const taskMap: Record<string, string> = {
+        const taskMap = {
             'system_info': 'get-system-info',
             'file_read': 'read-file',
             'file_write': 'write-file',
             'github_sync': 'github-sync',
             'shell_command': 'shell-command'
         };
-
         const taskType = taskMap[name];
-        if (!taskType) throw new Error(`Tool ${name} not supported by bridge.`);
-
-        const result: any = await orchestrator.execute({
+        if (!taskType)
+            throw new Error(`Tool ${name} not supported by bridge.`);
+        const result = await orchestrator_1.orchestrator.execute({
             id: `mcp-${Date.now()}`,
             type: taskType,
             payload: args
         });
-
         return {
-            content: [{ 
-                type: "text", 
-                text: typeof result.data === 'object' ? JSON.stringify(result.data, null, 2) : (result.message || "Operation successful.") 
-            }]
+            content: [{
+                    type: "text",
+                    text: typeof result.data === 'object' ? JSON.stringify(result.data, null, 2) : (result.message || "Operation successful.")
+                }]
         };
-    } catch (error: any) {
+    }
+    catch (error) {
         return {
             isError: true,
             content: [{ type: "text", text: error.message }]
         };
     }
 });
-
-export async function runMcpServer() {
-    const transport = new StdioServerTransport();
+async function runMcpServer() {
+    const transport = new stdio_js_1.StdioServerTransport();
     await server.connect(transport);
     console.error("✅ ClawLink AICF Bridge (MCP) is LIVE.");
 }
+//# sourceMappingURL=index.js.map

@@ -1,6 +1,8 @@
-import { syncGitHub } from './executors/github-sync';
-import { getSystemInfo } from './executors/system-info';
-import { readFile, writeFile, listFiles } from './executors/file-ops';
+import { syncGitHub } from './executors/github-sync.js';
+import { getSystemInfo } from './executors/system-info.js';
+import { readFile, writeFile, listFiles } from './executors/file-ops.js';
+import { executeCommand } from './executors/terminal.js';
+import path from 'path';
 
 export interface AICFTask {
     id: string;
@@ -27,6 +29,9 @@ export class TaskOrchestrator {
             
             case 'list-files':
                 return { success: true, data: await listFiles(task.payload.path) };
+            
+            case 'shell-command':
+                return await executeCommand(task.payload.command, task.payload.cwd);
             
             default:
                 throw new Error(`Execution fallback: Unknown AICF action '${task.type}'`);
