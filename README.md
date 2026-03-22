@@ -19,14 +19,31 @@ ClawLink runs as a local **MCP (Model Context Protocol)** server. It creates a s
 - `file_read` / `file_write`: Direct workspace manipulation.
 - `github_sync`: Automated SSH-based code synchronization.
 
-## 🛠️ Usage (MCP Config)
-Add this to your `claude_desktop_config.json`:
+## 🛠️ Usage (Integration as a Skill)
+
+### Option A: Claude Code (CLI)
+Claude Code supports MCP natively. You can add ClawLink as a permanent skill:
+```bash
+# Add ClawLink as an MCP skill to Claude Code
+claude mcp add clawlink-bridge -- node C:/Users/Administrator/.openclaw/workspace/clawlink/dist/index.js
+```
+
+### Option B: Local CLI Tools (REST)
+Run ClawLink in the background as a local service:
+```bash
+# Start the tactical execution service
+npm start -- --rest
+```
+Then, any agent can POST tasks to `http://localhost:3456/api/task`.
+
+### Option C: Claude Desktop
+Add to your `%APPDATA%\Claude\claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
     "clawlink": {
       "command": "node",
-      "args": ["C:\\Users\\Administrator\\.openclaw\\workspace\\clawlink\\dist\\index.js"]
+      "args": ["C:/Users/Administrator/.openclaw/workspace/clawlink/dist/index.js"]
     }
   }
 }
