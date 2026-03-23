@@ -1,15 +1,21 @@
-import os from 'os';
+import { openClawClient } from "../openclaw-client.js";
 
 export async function getSystemInfo() {
-    return {
-        platform: os.platform(),
-        release: os.release(),
-        arch: os.arch(),
-        cpus: os.cpus().length,
-        totalMemory: `${(os.totalmem() / 1024 / 1024 / 1024).toFixed(2)} GB`,
-        freeMemory: `${(os.freemem() / 1024 / 1024 / 1024).toFixed(2)} GB`,
-        hostname: os.hostname(),
-        userInfo: os.userInfo().username,
-        cwd: process.cwd()
-    };
+    console.log(`[SystemInfo] Delegating to OpenClaw session_status`);
+    try {
+        const status = await openClawClient.invokeTool('session_status', {});
+        return {
+            source: 'OpenClaw Gateway',
+            ...status
+        };
+    } catch (error: any) {
+        // Fallback to local OS info if delegation fails
+        import os from 'os';
+        return {
+            source: 'Local OS (Fallback)',
+            platform: os.platform(),
+            arch: os.arch(),
+            error: error.message
+        };
+    }
 }

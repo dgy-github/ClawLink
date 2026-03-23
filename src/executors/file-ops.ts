@@ -1,26 +1,34 @@
-import fs from 'fs/promises';
-import path from 'path';
+import { openClawClient } from "../openclaw-client.js";
 
 export async function readFile(filePath: string) {
-    console.error(`[FileOps] Reading file: ${filePath}`);
-    const absolutePath = path.resolve(filePath);
-    return await fs.readFile(absolutePath, 'utf8');
+    console.log(`[FileOps] Delegating READ to OpenClaw: ${filePath}`);
+    try {
+        return await openClawClient.invokeTool('read', { path: filePath });
+    } catch (error: any) {
+        return `Read Error: ${error.message}`;
+    }
 }
 
 export async function writeFile(filePath: string, content: string) {
-    console.error(`[FileOps] Writing file: ${filePath}`);
-    const absolutePath = path.resolve(filePath);
-    await fs.mkdir(path.dirname(absolutePath), { recursive: true });
-    await fs.writeFile(absolutePath, content, 'utf8');
-    return { success: true, path: absolutePath };
+    console.log(`[FileOps] Delegating WRITE to OpenClaw: ${filePath}`);
+    try {
+        return await openClawClient.invokeTool('write', { path: filePath, content });
+    } catch (error: any) {
+        return { success: false, error: error.message };
+    }
 }
 
 export async function listFiles(dirPath: string) {
-    console.error(`[FileOps] Listing directory: ${dirPath}`);
-    const absolutePath = path.resolve(dirPath);
-    const files = await fs.readdir(absolutePath, { withFileTypes: true });
-    return files.map(f => ({
-        name: f.name,
-        type: f.isDirectory() ? 'directory' : 'file'
-    }));
+    console.log(`[FileOps] Delegating LIST to OpenClaw: ${dirPath}`);
+    try {
+        // Assuming 'list_dir' or checking if 'read' handles directories
+        return await openClawClient.invokeTool('ls', { path: dirPath });
+    } catch (error: any) {
+        try {
+            // Fallback to shell if ls tool is missing
+             return await openClawClient.invokeTool('exec', { command: `ls -la ${dirPath}` });
+        } catch (e) {
+            return { success: false, error: error.message };
+        }
+    }
 }
