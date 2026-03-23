@@ -1,30 +1,17 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import path from 'path';
+import { openClawClient } from "../openclaw-client.js";
 
-const execAsync = promisify(exec);
-
-export async function executeCommand(command: string, cwd?: string) {
-    console.error(`[Terminal] 💻 Executing: "${command}" in ${cwd || process.cwd()}`);
-    
-    try {
-        const { stdout, stderr } = await execAsync(command, {
-            cwd: cwd ? path.resolve(cwd) : process.cwd(),
-            env: { ...process.env, FORCE_COLOR: '1' }
-        });
-        
-        return {
-            success: true,
-            stdout,
-            stderr
-        };
-    } catch (error: any) {
-        console.error(`[Terminal] ❌ Failed: ${error.message}`);
-        return {
-            success: false,
-            error: error.message,
-            stdout: error.stdout,
-            stderr: error.stderr
-        };
+export class TerminalExecutor {
+    async executeCommand(command: string, workdir?: string): Promise<string> {
+        console.log(`[Terminal] Delegating to OpenClaw: ${command}`);
+        try {
+            const result = await openClawClient.invokeTool('exec', {
+                command,
+                workdir
+            });
+            // OpenClaw's exec tool returns { stdout, stderr, exitCode ... }
+            return result.stdout || result.output || result.stderr || "Command executed (no output).";
+        } catch (error: any) {
+            return `Delegation Error: ${error.message}`;
+        }
     }
 }
