@@ -2,7 +2,9 @@ import { syncGitHub } from './executors/github-sync.js';
 import { getSystemInfo } from './executors/system-info.js';
 import { readFile, writeFile, listFiles } from './executors/file-ops.js';
 import { TerminalExecutor } from './executors/terminal.js';
+import { VisionExecutor } from './executors/vision.js';
 const terminal = new TerminalExecutor();
+const vision = new VisionExecutor();
 import path from 'path';
 
 export interface AICFTask {
@@ -33,6 +35,9 @@ export class TaskOrchestrator {
             
             case 'shell-command':
                 return await terminal.executeCommand(task.payload.command, task.payload.cwd);
+            
+            case 'capture-screen':
+                return await vision.captureScreen();
             
             default:
                 throw new Error(`Execution fallback: Unknown AICF action '${task.type}'`);
