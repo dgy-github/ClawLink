@@ -1,3 +1,4 @@
+import os from 'os';
 import { openClawClient } from "../openclaw-client.js";
 
 export async function getSystemInfo() {
@@ -10,7 +11,6 @@ export async function getSystemInfo() {
         };
     } catch (error: any) {
         // Fallback to local OS info if delegation fails
-        import os from 'os';
         return {
             source: 'Local OS (Fallback)',
             platform: os.platform(),
