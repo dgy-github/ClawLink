@@ -3,8 +3,17 @@ import { getSystemInfo } from './executors/system-info.js';
 import { readFile, writeFile, listFiles } from './executors/file-ops.js';
 import { TerminalExecutor } from './executors/terminal.js';
 import { VisionExecutor } from './executors/vision.js';
+import { MemoryExecutor } from './executors/memory.js';
+import { FabricExecutor } from './executors/fabric.js';
+import { DashboardExecutor } from './executors/dashboard.js';
+import { NotificationExecutor } from './executors/notifications.js';
+
 const terminal = new TerminalExecutor();
 const vision = new VisionExecutor();
+const memory = new MemoryExecutor();
+const fabric = new FabricExecutor();
+const dashboard = new DashboardExecutor();
+const notifications = new NotificationExecutor();
 import path from 'path';
 
 export interface AICFTask {
@@ -38,6 +47,24 @@ export class TaskOrchestrator {
             
             case 'capture-screen':
                 return await vision.captureScreen();
+
+            case 'memory-search':
+                return await memory.searchMemory(task.payload.query);
+            
+            case 'memory-add':
+                return await memory.addMemory(task.payload.text, task.payload.tags);
+
+            case 'fabric-pattern':
+                return await fabric.runPattern(task.payload.pattern, task.payload.input);
+
+            case 'dashboard-update':
+                return await dashboard.updateStatus(task.payload.text, task.payload.progress);
+
+            case 'notify':
+                return await notifications.notify(task.payload.title, task.payload.message);
+
+            case 'speak':
+                return await notifications.speak(task.payload.text);
             
             default:
                 throw new Error(`Execution fallback: Unknown AICF action '${task.type}'`);
