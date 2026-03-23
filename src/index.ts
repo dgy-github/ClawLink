@@ -1,21 +1,27 @@
-import { runMcpServer } from './mcp-server/index.js';
-import { startRestServer } from './brain-receiver/server.js';
+import { orchestrator } from "./orchestrator.js";
+import { runMcpServer } from "./mcp-server/index.js";
+import { runBrainReceiver } from "./brain-receiver/server.js";
+import { openClawClient } from "./openclaw-client.js";
 
-/**
- * ClawLink Dual-Mode Bootloader
- * 1. MCP Mode (Stdio): For MCP-compatible clients (Claude Desktop, etc.)
- * 2. REST Mode (HTTP): For local CLI tools, Python scripts, and Fabric patterns.
- */
+async function main() {
+    // 1. Initialize OpenClaw connection (auto-discovery)
+    await openClawClient.init();
 
-// Safe logging for Stdio
-console.log = console.error;
+    const isRestMode = process.argv.includes('--rest');
 
-const mode = process.argv.includes('--rest') ? 'REST' : 'MCP';
-
-if (mode === 'REST') {
-    startRestServer(3456);
-} else {
-    runMcpServer().catch((error) => {
-        console.error("Fatal error starting MCP Server:", error);
-    });
+    if (isRestMode) {
+        console.log("Starting ClawLink in REST mode (Brain-Receiver)...");
+        runBrainReceiver(3456);
+    } else {
+        console.log("Starting ClawLink in MCP mode (stdio)...");
+        runMcpServer().catch((error) => {
+            console.error("MCP server failed:", error);
+            process.exit(1);
+        });
+    }
 }
+
+main().catch((error) => {
+    console.error("Failed to start ClawLink:", error);
+    process.exit(1);
+});
