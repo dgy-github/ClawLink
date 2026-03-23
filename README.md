@@ -1,50 +1,54 @@
-# ClawLink (AICF Bridge) 🦀⛓️
+# 🦞 ClawLink: The "Hands" for AI Agents
 
-> **Separating the Brain from the Hands.**
+**ClawLink** is a lightweight AICF (AI Coordination Framework) bridge that connects high-level AI "Brains" (Claude Code, Gemini, etc.) with local execution environments via **OpenClaw**.
 
-ClawLink is a specialized execution bridge designed to give cloud-based Coding Agents (Gemini, Claude, GPT-4) high-privilege access to local development environments via the **AICF (AI Coordination Framework)** protocol.
+## 🧠 Philosophy: Brain + Hands
+Most AI agents live in sandboxed or cloud-based environments. They are smart ("Brain") but lack physical reach to your local system ("Hands"). ClawLink solves this by acting as a **Privileged Tactical Proxy**:
 
-## 🎯 Purpose
-- **The Brain (Remote)**: Handles complex project architecture, code generation, and engineering decisions.
-- **The Hands (ClawLink Local)**: Executes tactical commands (Git pushes, file system edits, system sensing) that the remote Brain cannot perform directly due to security sandboxing.
+1. **The Brain (AI)** thinks and plans the engineering logic.
+2. **The Bridge (ClawLink)** translates AI intent into local protocols (MCP/REST).
+3. **The Hands (OpenClaw)** executes the actual commands on your machine within safe boundaries.
 
-## 🛡️ Security & Architecture
-ClawLink runs as a local **MCP (Model Context Protocol)** server. It creates a secure bridge:
-- **Zero Intelligence**: ClawLink doesn't overthink; it executes.
-- **Full Privilege**: Leverages local SSH keys (`fsapi`) and OS-level file access.
-- **Isolation**: Coding agents remain in their sandbox while "remote-controlling" the local workspace through this proxy.
+## ✨ Key Features
+- **MCP Adapter**: Seamlessly integrates as a skill in Claude Code, Cursor, and IDEs.
+- **REST Delegation**: Forwards execution tasks to the [OpenClaw](https://github.com/dgy-github/openclaw) Gateway API.
+- **Security First**: No direct shell spawning; leverages OpenClaw's security policy and sandbox.
+- **Auto-Discovery**: Automatically finds local OpenClaw configuration and credentials.
+- **GitHub Sync**: Dedicated tools for atomic Git operations via local SSH keys.
 
-## 🚀 Capabilities (Tactical Tools)
-- `system_info`: Environment sensing.
-- `file_read` / `file_write`: Direct workspace manipulation.
-- `github_sync`: Automated SSH-based code synchronization.
+## 🛠️ Installation (Claude Code)
 
-## 🛠️ Usage (Integration as a Skill)
+Install ClawLink as a global MCP skill with one command:
 
-### Option A: Claude Code (CLI)
-Claude Code supports MCP natively. You can add ClawLink as a permanent skill:
 ```bash
-# Add ClawLink as an MCP skill to Claude Code
-claude mcp add clawlink-bridge -- node C:/Users/Administrator/.openclaw/workspace/clawlink/dist/index.js
+claude mcp add clawlink -- node C:/Users/Administrator/.openclaw/workspace/clawlink/dist/index.js
 ```
 
-### Option B: Local CLI Tools (REST)
-Run ClawLink in the background as a local service:
-```bash
-# Start the tactical execution service
-npm start -- --rest
-```
-Then, any agent can POST tasks to `http://localhost:3456/api/task`.
+## 🚀 Usage Examples
 
-### Option C: Claude Desktop
-Add to your `%APPDATA%\Claude\claude_desktop_config.json`:
-```json
-{
-  "mcpServers": {
-    "clawlink": {
-      "command": "node",
-      "args": ["C:/Users/Administrator/.openclaw/workspace/clawlink/dist/index.js"]
-    }
-  }
-}
+Once installed, you can command your AI agent to use ClawLink for local tasks:
+
+**Terminal Execution:**
+> "ClawLink, help me run `npm test` in the current directory."
+
+**System Health:**
+> "ClawLink, what is the status of my local OpenClaw gateway?"
+
+**File Operations:**
+> "ClawLink, read the content of `package.json` and tell me the version."
+
+## 🏗️ Architecture
+```mermaid
+graph LR
+    A[Claude Code / Gemini] -- MCP --> B(ClawLink Bridge)
+    B -- REST API --> C{OpenClaw Gateway}
+    C --> D[Local Shell / FS / Git]
 ```
+
+## 🔧 Configuration
+ClawLink automatically reads `~/.openclaw/openclaw.json` to determine:
+- **Port:** Default `18789`.
+- **Auth:** Gateway Token (auto-fetched).
+
+## 📄 License
+MIT
