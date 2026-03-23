@@ -1,6 +1,6 @@
 import { orchestrator } from "./orchestrator.js";
 import { runMcpServer } from "./mcp-server/index.js";
-import { runBrainReceiver } from "./brain-receiver/server.js";
+import { startRestServer } from "./brain-receiver/server.js";
 import { openClawClient } from "./openclaw-client.js";
 
 async function main() {
@@ -11,7 +11,7 @@ async function main() {
 
     if (isRestMode) {
         console.log("Starting ClawLink in REST mode (Brain-Receiver)...");
-        runBrainReceiver(3456);
+        startRestServer(3456);
     } else {
         console.log("Starting ClawLink in MCP mode (stdio)...");
         runMcpServer().catch((error) => {

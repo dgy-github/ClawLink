@@ -1,4 +1,4 @@
-import simpleGit, { SimpleGit } from 'simple-git';
+import { simpleGit, SimpleGit } from 'simple-git';
 
 export async function syncGitHub(repoPath: string, message: string): Promise<{success: boolean; error?: string}> {
     console.log(`[GitHubSync] Starting SSH sync for repository at: ${repoPath}`);
